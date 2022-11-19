@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.Scanner;
+import javax.swing.JFileChooser;
 
 /*
  * INF389 - Taller de Algoritmos y Estructura de Datos II
@@ -9,14 +10,15 @@ import java.util.Scanner;
  * DNI: 34.434.704
  */
 
-public class Huffman {
+public class Archivos {
 
     /**
      * Método que permite borrar la consola para una mejor utilización del sistema
      */
     public static void ClearConsole() {
         try {
-            String operatingSystem = System.getProperty("os.name"); // Check the current operating system
+            // Verifica el sistema donde se está ejecutando el programa
+            String operatingSystem = System.getProperty("os.name");
 
             if (operatingSystem.contains("Windows")) {
                 ProcessBuilder pb = new ProcessBuilder("cmd", "/c", "cls");
@@ -69,8 +71,16 @@ public class Huffman {
 
         // Tabla de Huffman para las frecuencias
         String TablaHuffmanCodigos[]; // Crea la el array de strings
+
+        // Tamaño de la tabla inicial
         int tamanotabla = 0; // Inicializa el tamaño de tabla en 0
 
+        /**
+         * Transforma un dato del tipo Byte a un dato del mismo tipo pero sin signo
+         * 
+         * @param dato que se necesita transformar
+         * @return el resultado del dato transformado
+         */
         int ByteToUnsignedByte(byte dato) {
             int resultado = (int) dato;
             if (dato < 0) {
@@ -79,7 +89,12 @@ public class Huffman {
             return resultado;
         }
 
-        // Creamos la tabla de Huffman en el arreglo (Tabla de frecuencias)
+        /**
+         * Crea la tabla de Huffman en el arreglo (Tabla de Frecuencias)
+         * 
+         * @param NombreArchivo es la dirección al archivo, contiene el nombre del
+         *                      archivo
+         */
         void CargarTablaDeArchivo(String NombreArchivo) {
             NodoInicial = null;
             TablaHuffman = new int[256];
@@ -88,15 +103,18 @@ public class Huffman {
                 TablaHuffman[i] = 0;
                 TablaHuffmanCodigos[i] = "";
             }
-            ClearConsole();
-            System.out.println("Se carga el siguiente archivo a comprimir: " + NombreArchivo);
+            ClearConsole(); // Limpia la consola
+            System.out.println("Se carga el siguiente archivo a comprimir: " + NombreArchivo); // Muestra el archivo a
+                                                                                               // cargar
             try {
-                RandomAccessFile file = new RandomAccessFile(NombreArchivo, "r");
+                RandomAccessFile file = new RandomAccessFile(NombreArchivo, "r"); // Abre el archivo
                 byte dato;
                 int entero;
                 long cont = 0;
-                long tamano = file.length();
-                System.out.println("\nTamaño original del archivo: " + tamano);
+                long tamano = file.length(); // Obtiene el tamaño del archivo
+                System.out.println("\nTamaño original del archivo: " + tamano); // Muestra el tamaño inicial del archivo
+
+                // Comienza la carga de datos a partir del archivo en la Tabla Huffman
                 while (cont < tamano) {
                     file.seek(cont);
                     dato = file.readByte();
@@ -104,21 +122,30 @@ public class Huffman {
                     TablaHuffman[entero]++;
                     cont++;
                 }
-                file.close();
+                // Finaliza la carga de datos a partir del archivo en la Tabla Huffman
+
+                file.close(); // Cierra el archivo
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
+            // Calcula el tamaño de la Tabla Huffman
             for (int i = 0; i <= 255; i++) {
                 if (TablaHuffman[i] > 0) {
                     tamanotabla++;
                 }
             }
 
+            // Muestra por pantalla el tamaño de la Tabla Huffman
             System.out.print("\nTamaño de la tabla: " + tamanotabla + "\n");
         }
 
-        // Crear Lista de Arboles
+        /**
+         * Inserta un nuevo Nodo en la lista de árboles
+         * 
+         * @param NodoAInsertar es el Nodo que se insertará
+         */
         void InsertarNodoLista(NodoLista NodoAInsertar) {
             NodoLista AUXposnodo, AUXposnodoant, auxnodo;
             // Insertar el nodo en la lista
@@ -136,13 +163,11 @@ public class Huffman {
                 if (AUXposnodoant == null) {
                     if (NodoAInsertar.raiz.frecuencia >= AUXposnodo.raiz.frecuencia) {
                         AUXposnodo.siguiente = NodoAInsertar;
-                        // NodoAInsertar.siguiente=null;
                     } else {
                         NodoAInsertar.siguiente = NodoInicial;
                         NodoInicial = NodoAInsertar;
                     }
                 } else {
-                    // AUXposnodoant.siguiente = NodoAInsertar;
                     if (NodoAInsertar.raiz.frecuencia >= AUXposnodo.raiz.frecuencia) {
                         auxnodo = AUXposnodo.siguiente;
                         AUXposnodo.siguiente = NodoAInsertar;
@@ -155,6 +180,9 @@ public class Huffman {
             }
         }
 
+        /**
+         * Muestra la Lista de Árboles por consola
+         */
         void MostrarListaDeArboles() {
             NodoLista AUXnodo = NodoInicial;
             int count = 0;
@@ -171,6 +199,9 @@ public class Huffman {
             System.out.println(" ");
         }
 
+        /**
+         * Crea la Lista de Árboles y la muestra por consola
+         */
         void CrearListaDeArboles() {
             int pos = 0;
             System.out.println("\nTabla: ");
@@ -191,7 +222,9 @@ public class Huffman {
             MostrarListaDeArboles();
         }
 
-        // Proceso para reducir la lista a un solo nodo con un solo árbol
+        /**
+         * Este proceso reduce la lista de árboles a un sólo arbol con un Nodo Inicial
+         */
         void ProcesarListaDeArboles() {
             if (NodoInicial != null) {
                 NodoLista AUXRECORIDONL, AUXNL1, AUXNL2;
@@ -220,6 +253,13 @@ public class Huffman {
             }
         }
 
+        /**
+         * Genera los códigos de Huffman a partir del Árbol de Huffman
+         * 
+         * @param AUXNODORAIZ es el Nodo del Árbol de Huffman para el que se quiere
+         *                    crear el código
+         * @param codigo      es la cadena inicial para la generación del código
+         */
         void GenerarCodigosDeHuffman_recursivo(NodoArbol AUXNODORAIZ, String codigo) {
             // Método a desarrollar
             // Como primer paso analizamos si el nodo AUXNODORAIZ es una hoja del arbol
@@ -240,6 +280,12 @@ public class Huffman {
             GenerarCodigosDeHuffman_recursivo(AUXNODORAIZ.derecha, codigo + "1");
         }
 
+        /**
+         * Transforma una string a una cadena de bytes
+         * 
+         * @param strtobyte cadena a transformar
+         * @return la cadena de bytes transformada
+         */
         byte stringbytetobyte(String strtobyte) {
             byte Byteresult = 0;
             int Intresult = 0;
@@ -271,6 +317,14 @@ public class Huffman {
             return Byteresult;
         }
 
+        /**
+         * Procesa el buffer del archivo
+         * 
+         * @param STRBUFF es el buffer que debe procesarse
+         * @param archivo al que pertenece el buffer
+         * @return string auxiliar procesado del buffer del archivo
+         * @throws IOException
+         */
         String procesarbuffer(String STRBUFF, RandomAccessFile archivo) throws IOException {
             String Auxstr = STRBUFF, STRINGBYTE = "";
             while (Auxstr.length() >= 8) {
@@ -281,11 +335,17 @@ public class Huffman {
             return Auxstr;
         }
 
+        /**
+         * Genera el archivo comprimido
+         * 
+         * @param NombreArchivoO archivo de origen
+         * @param NombreArchivoD archivo de destino
+         */
         void GenerarArchivoComprimido(String NombreArchivoO, String NombreArchivoD) {
             // Grabamos el archivo a comprimir
             String STRBuffer = "";
             String STRBuffertmp = "";
-            // Borrar si existe el archivo
+            // Borrar si ya existe el archivo
             File arch = new File(NombreArchivoD);
             if (arch.delete())
                 System.out.println("\nArchivo antiguo borrado.\n");
@@ -298,21 +358,31 @@ public class Huffman {
                 byte dato;
                 long cont = 0;
                 long tamano = archivoorigen.length();
-                // System.out.println(STRBuffer);
                 while (cont < tamano) {
                     archivoorigen.seek(cont);
                     dato = archivoorigen.readByte();
                     entero = ByteToUnsignedByte(dato);
                     // Codificar en buffer de string
-                    // System.out.println(entero);
                     STRBuffer = STRBuffer + TablaHuffmanCodigos[entero];
-                    STRBuffertmp = STRBuffertmp + " " + TablaHuffmanCodigos[entero];
-                    // System.out.println(TablaHuffmanCodigos[entero]);
+                    STRBuffertmp = STRBuffertmp + TablaHuffmanCodigos[entero] + " ";
                     STRBuffer = procesarbuffer(STRBuffer, archivodestino);
                     cont++;
                 }
                 System.out.println("Buffer temporal del archivo: \n" + STRBuffertmp + "\n");
+
+                long tamanioD = archivodestino.length(); // Calcula el tamaño del archivo de destino (comprimido)
+
+                // Muestra el tamaño del archivo origen
+                System.out.println("Tamaño del archivo de origen: " + tamano + " bytes.");
+                // Muestra el tamaño del archivo de destino
+                System.out.println("Tamaño del archivo de destino: " + tamanioD + " bytes.");
+                // Cierra los archivos abiertos
+                System.out.println("Se disminuyó el tamaño original del archivo en " + (tamano - tamanioD)
+                        + " bytes. Impresionante!");
+
+                // Cierra los archivos abiertos
                 archivoorigen.close();
+                archivodestino.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -322,11 +392,15 @@ public class Huffman {
     // Huffman
     public ArbolHuffman AH;
 
+    /**
+     * Realiza la compresión del archivo
+     * 
+     * @param NombreArchivo es el archivo a comprimir
+     */
     void Comprimir(String NombreArchivo) {
         ArbolHuffman AH = new ArbolHuffman();
         if (AH != null) {
             AH.CargarTablaDeArchivo(NombreArchivo);
-            // System.out.println("Crea lista: ");
             AH.CrearListaDeArboles();
             AH.ProcesarListaDeArboles();
             System.out.println("Se muestra el código generado por el Algoritmo de Huffman para cada clave:");
@@ -335,35 +409,57 @@ public class Huffman {
         }
     }
 
+    // Main para la ejecución del programa
     public static void main(String[] args) {
 
         Scanner entrada = new Scanner(System.in);
         int opcion = 0;
         ClearConsole();
 
+        // Consulta al usuario qué archivo desea comprimir
         while (opcion != 1 && opcion != 2) {
-            System.out.println("¡Bienvenido al programa de prueba del Algoritmo de Huffman! Elija una opción: ");
-            System.out.println(
-                    "1 - Comprimir Archivo 1 ('estamos bien')\n2 - Comprimir Archivo 2 ('***yyyyyjjjjjjjjjj--------------------,,,,,,,,,,,,,,,,,,,,,,,,,')");
-            System.out.println("\nOpción elegida: ");
-            opcion = entrada.nextInt();
+            System.out.println("¡Bienvenido al programa de prueba del Algoritmo de Huffman! Elija una opción:\n");
+            System.out.println("1 - Comprimir Archivo (abre diálogo de selección)\n2 - Salir\n");
+            System.out.print("Opción elegida: ");
+            if (entrada.hasNextInt()) {
+                opcion = entrada.nextInt();
+            }
+
+            if (opcion != 1 && opcion != 2) {
+                System.out.println(
+                        "La opción seleccionada no es válida. Presione Enter para continuar...");
+                try {
+                    System.in.read();
+                    entrada.nextLine();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                ClearConsole();
+            }
             ClearConsole();
         }
 
         if (opcion == 1) {
-            // Crear arbol de Huffman
-            Huffman AHuffman1 = new Huffman();
-            // Cambiar el nombre del archivo por el archivo deseado
-            AHuffman1.Comprimir(
-                    "C:\\Users\\miele\\OneDrive\\Universidad Siglo 21\\2022\\2022 - 2B\\INF389 - Taller de Algoritmos y Estructura de Datos II\\Modulo 3\\INF389-TAyED2-2022-TP3\\prueba1_Huffman.txt");
-
-        } else if (opcion == 2) {
-            // Crear arbol de Huffman
-            Huffman AHuffman2 = new Huffman();
-            // Cambiar el nombre del archivo por el archivo deseado
-            AHuffman2.Comprimir(
-                    "C:\\Users\\miele\\OneDrive\\Universidad Siglo 21\\2022\\2022 - 2B\\INF389 - Taller de Algoritmos y Estructura de Datos II\\Modulo 3\\INF389-TAyED2-2022-TP3\\prueba2_Huffman.txt");
+            System.out.print("Seleccione un archivo para comprimir en la ventana abierta.");
+            JFileChooser fc = new JFileChooser();
+            int returnVal = fc.showOpenDialog(null);
+            File file = null;
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                file = fc.getSelectedFile();
+                ClearConsole();
+                // Crear arbol de Huffman
+                Archivos AHuffman3 = new Archivos();
+                String linkArchivo = file.getAbsolutePath();
+                // Ejecuta la compresión del archivo
+                AHuffman3.Comprimir(linkArchivo);
+            } else {
+                System.out.println("No se seleccionó un archivo válido.");
+            }
+            entrada.close();
+            System.out.println("\nMuchas gracias por usar el programa de compresión.\n");
+        } else {
+            entrada.close();
+            System.out.println("\nMuchas gracias por usar el programa de compresión.\n");
         }
-        entrada.close();
     }
 }
